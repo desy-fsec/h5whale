@@ -1,20 +1,36 @@
 services:
+  reverse-proxy:
+    image: traefik:3.2
+    command: --api.insecure=true --providers.docker=true --entrypoints.web.address=:80
+    ports:
+      - "80:80"
+#      - "8080:8080"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
   h5web:
     build:
       context: ./h5web_app
       args:
         - H5GROVE_APP_PORT=${H5GROVE_APP_PORT}
         - H5WEB_APP_PORT=${H5WEB_APP_PORT}
-    ports:
-      - '${H5WEB_APP_PORT}:${H5WEB_APP_PORT}'
+    #ports:
+    #  - '${H5WEB_APP_PORT}:${H5WEB_APP_PORT}'
+    labels:
+      - "traefik.http.routers.frontend.rule=PathPrefix(`/`)"
+      - "traefik.http.routers.frontend.entrypoints=web"
+
+ 
   h5grove:
     build:
       context: ./h5grove_app
       args:
         - H5GROVE_APP_PORT=${H5GROVE_APP_PORT}
-    ports:
-      - '${H5GROVE_APP_PORT}:${H5GROVE_APP_PORT}'
+    #ports:
+    #  - '${H5GROVE_APP_PORT}:${H5GROVE_APP_PORT}'
     volumes:
       - type: bind
         source: ./data
         target: /data
+    labels:
+      - "traefik.http.routers.backend.rule=PathPrefix(`/attr/`)||PathPrefix(`/data/`)||PathPrefix(`/meta/`)||PathPrefix(`/stats/`)||PathPrefix(`/paths/`)"
+      - "traefik.http.routers.backend.entrypoints=web"
