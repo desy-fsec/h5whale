@@ -9,6 +9,7 @@ ENV VITE_H5GROVE_PORT=${H5GROVE_APP_PORT}
 
 ENV PNPM_HOME="/pnpm"
 ENV PATH="$PNPM_HOME:$PATH"
+RUN npm install -g corepack@latest
 RUN corepack enable
 COPY . /h5web_app
 WORKDIR /h5web_app
